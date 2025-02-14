@@ -62,9 +62,9 @@ model Event {
   recurringDetailsId Int?             @unique
 
   // Owner and editors:
-  owner             Attendee          @relation("OwnerEvents", fields: [ownerId], references: [id])
+  owner             User              @relation("OwnerEvents", fields: [ownerId], references: [id])
   ownerId           Int
-  editors           Attendee[]        @relation("EventEditors")
+  editors           User[]            @relation("EventEditors")
 
   // Attendees (many-to-many relation through a join table)
   attendees         EventAttendee[]
@@ -87,32 +87,31 @@ model Event {
   @@index([uuid])
 }
 
-// Attendee model (global role removed)
-model Attendee {
-  id              Int             @id @default(autoincrement())
+// User model (formerly Attendee)
+model User {
+  id              Int               @id @default(autoincrement())
   name            String
-  email           String          @unique
+  email           String            @unique
 
   // Relations:
-  eventsOwned     Event[]         @relation("OwnerEvents")
-  eventsEdited    Event[]         @relation("EventEditors")
+  eventsOwned     Event[]           @relation("OwnerEvents")
+  eventsEdited    Event[]           @relation("EventEditors")
   eventsAttending EventAttendee[]
 
   // Inverse relation for change history
-  changeHistories ChangeHistory[] @relation("ChangedBy")
+  changeHistories ChangeHistory[]   @relation("ChangedBy")
 }
 
-// Implicit join table for many-to-many relation between Event and Attendee (for attendees)
-// Now with a role field specifying the attendee’s role for the event.
+// Implicit join table for many-to-many relation between Event and User (for event attendees)
 model EventAttendee {
-  event      Event    @relation(fields: [eventId], references: [id])
+  event      Event   @relation(fields: [eventId], references: [id])
   eventId    Int
-  attendee   Attendee @relation(fields: [attendeeId], references: [id])
-  attendeeId Int
+  user       User    @relation(fields: [userId], references: [id])
+  userId     Int
 
   role       AttendeeRole @default(attendee)
 
-  @@id([eventId, attendeeId])
+  @@id([eventId, userId])
 }
 
 // Model for recurring event details
@@ -120,7 +119,7 @@ model RecurringDetails {
   id          Int        @id @default(autoincrement())
   type        RecurrenceType
   interval    Int?
-  daysOfWeek  String[]   @default([]) // Stored as a string array; default to empty array
+  daysOfWeek  String[]   @default([])
   dayOfMonth  Int?
   weekOfMonth Int?
   monthOfYear Int?
@@ -138,7 +137,7 @@ model ChangeHistory {
   eventId      Int
   event        Event     @relation(fields: [eventId], references: [id])
   changedById  Int
-  changedBy    Attendee  @relation("ChangedBy", fields: [changedById], references: [id])
+  changedBy    User      @relation("ChangedBy", fields: [changedById], references: [id])
   changedAt    DateTime  @default(now())
   changes      Change[]
 }

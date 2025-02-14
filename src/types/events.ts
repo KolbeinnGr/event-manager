@@ -1,6 +1,6 @@
 export interface Event {
-	id: number; // Autoincremented primary key (Int)
-	uuid: string; // External identifier that remains constant across versions
+	id: number; // Autoincremented primary key from the DB
+	uuid: string; // External identifier (remains the same across versions)
 	title: string;
 	image: string;
 	shortDescription: string;
@@ -13,8 +13,7 @@ export interface Event {
 	recurring?: boolean;
 	recurringDetails?: RecurringDetails;
 
-	// Note: Attendees for the event come from the join table (EventAttendee)
-	// You may optionally include a helper field:
+	// Attendees for the event come from the join table (if needed)
 	attendees?: EventAttendee[];
 
 	notifyAttendees?: boolean;
@@ -29,23 +28,23 @@ export interface Event {
 
 	theme?: Partial<EventTheme>;
 
-	owner: Attendee;
-	editors?: Attendee[];
+	owner: User;
+	editors?: User[];
 
 	createdAt: Date;
 	updatedAt: Date;
 	changeHistory?: ChangeHistory[];
 }
 
-export interface Attendee {
-	id: number; // Updated to number
+export interface User {
+	id: number;
 	name: string;
 	email: string;
 }
 
 export interface EventAttendee {
 	eventId: number;
-	attendeeId: number;
+	userId: number;
 	role: "owner" | "editor" | "attendee";
 }
 
@@ -82,7 +81,7 @@ export interface EventTheme {
 export interface ChangeHistory {
 	id: number;
 	eventId: number;
-	changedBy: Attendee;
+	changedBy: User;
 	changedAt: Date;
 	changes: Change[];
 }
