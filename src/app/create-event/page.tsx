@@ -35,7 +35,6 @@ export default function CreateEventPage() {
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
-		console.log("Event Created:", event);
 
 		// Send the event data to the API
 		fetch("/api/events", {
@@ -44,13 +43,20 @@ export default function CreateEventPage() {
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify(event),
-		}).then((res) => {
-			if (res.ok) {
-				console.log("Event created successfully");
-			} else {
-				console.error("Failed to create event");
-			}
-		});
+		})
+			.then((res) => {
+				if (!res.ok) {
+					throw new Error("Failed to create event.");
+				}
+				return res.json(); // Parsing the response as JSON
+			})
+
+			.then((data) => {
+				console.log("Event created successfully: ", data);
+			})
+			.catch((error) => {
+				console.error("Error: ", error);
+			});
 	};
 
 	return (
@@ -70,7 +76,9 @@ export default function CreateEventPage() {
 					<input
 						type="text"
 						value={event.title}
-						onChange={(e) => handleChange({ title: e.target.value })}
+						onChange={(e) =>
+							handleChange({ title: e.target.value })
+						}
 						required
 					/>
 				</label>
@@ -79,7 +87,9 @@ export default function CreateEventPage() {
 					<input
 						type="text"
 						value={event.shortDescription}
-						onChange={(e) => handleChange({ shortDescription: e.target.value })}
+						onChange={(e) =>
+							handleChange({ shortDescription: e.target.value })
+						}
 						required
 					/>
 				</label>
@@ -87,7 +97,9 @@ export default function CreateEventPage() {
 					Description:
 					<textarea
 						value={event.description}
-						onChange={(e) => handleChange({ description: e.target.value })}
+						onChange={(e) =>
+							handleChange({ description: e.target.value })
+						}
 						required
 					/>
 				</label>
@@ -96,7 +108,9 @@ export default function CreateEventPage() {
 					<input
 						type="text"
 						value={event.location}
-						onChange={(e) => handleChange({ location: e.target.value })}
+						onChange={(e) =>
+							handleChange({ location: e.target.value })
+						}
 						required
 					/>
 				</label>
@@ -105,7 +119,9 @@ export default function CreateEventPage() {
 					<input
 						type="datetime-local"
 						value={event.startDate}
-						onChange={(e) => handleChange({ startDate: e.target.value })}
+						onChange={(e) =>
+							handleChange({ startDate: e.target.value })
+						}
 						required
 					/>
 				</label>
@@ -114,14 +130,25 @@ export default function CreateEventPage() {
 					<input
 						type="datetime-local"
 						value={event.endDate}
-						onChange={(e) => handleChange({ endDate: e.target.value })}
+						onChange={(e) =>
+							handleChange({ endDate: e.target.value })
+						}
 					/>
 				</label>
 				<label>
 					Image URL:
-					<input type="text" value={event.image} onChange={(e) => handleChange({ image: e.target.value })} />
+					<input
+						type="text"
+						value={event.image}
+						onChange={(e) =>
+							handleChange({ image: e.target.value })
+						}
+					/>
 				</label>
-				<button type="submit" style={{ padding: "10px 20px", fontSize: "16px" }}>
+				<button
+					type="submit"
+					style={{ padding: "10px 20px", fontSize: "16px" }}
+				>
 					Create Event
 				</button>
 			</form>

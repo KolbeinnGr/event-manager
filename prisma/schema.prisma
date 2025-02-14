@@ -1,14 +1,154 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// Enums corresponding to your interfaces
+enum EventStatus {
+  draft
+  published
+  cancelled
+}
+
+enum Visibility {
+  public
+  private
+}
+
+enum RecurrenceType {
+  daily
+  weekly
+  monthly
+  yearly
+  custom
+}
+
+enum Weekday {
+  Monday
+  Tuesday
+  Wednesday
+  Thursday
+  Friday
+  Saturday
+  Sunday
+}
+
+enum AttendeeRole {
+  owner
+  editor
+  attendee
+}
+
+// Main Event model
+model Event {
+  id                Int               @id @default(autoincrement())
+  uuid              String            // External identifier (populated by you)
+  title             String
+  image             String
+  shortDescription  String
+  description       String
+  startDate         DateTime
+  endDate           DateTime?
+  location          String
+
+  // Recurring setup
+  recurring         Boolean?
+  recurringDetails  RecurringDetails? @relation("EventRecurringDetails", fields: [recurringDetailsId], references: [id])
+  recurringDetailsId Int?             @unique
+
+  // Owner and editors:
+  owner             Attendee          @relation("OwnerEvents", fields: [ownerId], references: [id])
+  ownerId           Int
+  editors           Attendee[]        @relation("EventEditors")
+
+  // Attendees (many-to-many relation through a join table)
+  attendees         EventAttendee[]
+
+  notifyAttendees   Boolean?
+
+  // Signup options and theme stored as JSON
+  signupOptions     Json?
+  theme             Json?
+
+  status            EventStatus
+  visibility        Visibility
+
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  // Change history (one-to-many)
+  changeHistory     ChangeHistory[]
+
+  @@index([uuid])
+}
+
+// Attendee model (global role removed)
+model Attendee {
+  id              Int             @id @default(autoincrement())
+  name            String
+  email           String          @unique
+
+  // Relations:
+  eventsOwned     Event[]         @relation("OwnerEvents")
+  eventsEdited    Event[]         @relation("EventEditors")
+  eventsAttending EventAttendee[]
+
+  // Inverse relation for change history
+  changeHistories ChangeHistory[] @relation("ChangedBy")
+}
+
+// Implicit join table for many-to-many relation between Event and Attendee (for attendees)
+// Now with a role field specifying the attendee’s role for the event.
+model EventAttendee {
+  event      Event    @relation(fields: [eventId], references: [id])
+  eventId    Int
+  attendee   Attendee @relation(fields: [attendeeId], references: [id])
+  attendeeId Int
+
+  role       AttendeeRole @default(attendee)
+
+  @@id([eventId, attendeeId])
+}
+
+// Model for recurring event details
+model RecurringDetails {
+  id          Int        @id @default(autoincrement())
+  type        RecurrenceType
+  interval    Int?
+  daysOfWeek  String[]   @default([]) // Stored as a string array; default to empty array
+  dayOfMonth  Int?
+  weekOfMonth Int?
+  monthOfYear Int?
+  startDate   DateTime
+  endDate     DateTime?
+  customDates String[]   @default([])
+
+  // Inverse relation field with the same relation name:
+  event       Event?     @relation("EventRecurringDetails")
+}
+
+// Model for change history records
+model ChangeHistory {
+  id           Int       @id @default(autoincrement())
+  eventId      Int
+  event        Event     @relation(fields: [eventId], references: [id])
+  changedById  Int
+  changedBy    Attendee  @relation("ChangedBy", fields: [changedById], references: [id])
+  changedAt    DateTime  @default(now())
+  changes      Change[]
+}
+
+// Model for individual field changes in ChangeHistory
+model Change {
+  id              Int           @id @default(autoincrement())
+  changeHistoryId Int
+  changeHistory   ChangeHistory @relation(fields: [changeHistoryId], references: [id])
+  field           String
+  oldValue        Json
+  newValue        Json
 }

@@ -15,19 +15,21 @@ export async function POST(request: NextRequest) {
 
 	if (!title || !description || !location || !startDate) {
 		return NextResponse.json(
-			{ error: "Missing required fields: title, description, location, startDate" },
+			{
+				error: "Missing required fields: title, description, location, startDate",
+			},
 			{ status: 400 }
 		);
 	}
 
 	const newEvent = {
-		id: crypto.randomUUID(),
 		...body,
+		id: crypto.randomUUID(),
 		createdBy: session.email, // Use the authenticated user's email
 		createdAt: new Date().toISOString(),
 		updatedAt: new Date().toISOString(),
 	};
-
+	console.log("Returning event: ", newEvent);
 	return NextResponse.json(newEvent, { status: 201 });
 }
 
