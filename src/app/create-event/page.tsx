@@ -1,56 +1,64 @@
 "use client";
 
 import React, { useState } from "react";
-import { Event } from "@/types/events";
+import { EventType } from "@/types/events";
+
+// Helper function to format a Date object for the datetime-local input
+function formatDateForInput(date?: Date): string {
+	if (!date) return "";
+	// Convert to ISO string and then remove the seconds and milliseconds
+	return date.toISOString().slice(0, 16);
+}
 
 export default function CreateEventPage() {
-	const [event, setEvent] = useState<Event>({
-		id: "", // This will eventually be generated when submitted
+	// Initialize the event state. Note that we use new Date() as a default value.
+	const [event, setEvent] = useState<EventType>({
 		image: "",
 		shortDescription: "",
 		title: "",
 		description: "",
 		location: "",
-		startDate: "",
-		endDate: "",
+		startDate: new Date(), // Default to current date/time
+		endDate: new Date(), // Default to current date/time (or you might set it to null)
 		recurring: false,
 		attendees: [],
 		notifyAttendees: false,
 		status: "draft",
 		visibility: "public",
-		openForSignup: false,
-		attendeeSignupDeadline: "",
 		owner: {
-			id: "",
 			name: "",
 			email: "",
 		},
-		createdAt: "",
-		updatedAt: "",
 	});
 
-	const handleChange = (updatedEvent: Partial<Event>) => {
-		setEvent((prev: any) => ({ ...prev, ...updatedEvent }));
+	// Generic handler to update the event state
+	const handleChange = (updatedEvent: Partial<EventType>) => {
+		setEvent((prev) => ({ ...prev, ...updatedEvent }));
 	};
 
+	// When the form is submitted, convert Date objects to ISO strings
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
 
-		// Send the event data to the API
+		const eventData = {
+			...event,
+			startDate: event.startDate.toISOString(),
+			endDate: event.endDate ? event.endDate.toISOString() : null,
+		};
+
 		fetch("/api/events", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
 			},
-			body: JSON.stringify(event),
+			body: JSON.stringify(eventData),
 		})
 			.then((res) => {
 				if (!res.ok) {
 					throw new Error("Failed to create event.");
 				}
-				return res.json(); // Parsing the response as JSON
+				return res.json();
 			})
-
 			.then((data) => {
 				console.log("Event created successfully: ", data);
 			})
@@ -60,7 +68,7 @@ export default function CreateEventPage() {
 	};
 
 	return (
-		<div className="text-blue-500" style={{ padding: "20px" }}>
+		<div style={{ padding: "20px" }}>
 			<h1>Create Event</h1>
 			<form
 				onSubmit={handleSubmit}
@@ -118,9 +126,11 @@ export default function CreateEventPage() {
 					Start Date:
 					<input
 						type="datetime-local"
-						value={event.startDate}
+						value={formatDateForInput(event.startDate)}
 						onChange={(e) =>
-							handleChange({ startDate: e.target.value })
+							handleChange({
+								startDate: new Date(e.target.value),
+							})
 						}
 						required
 					/>
@@ -129,9 +139,9 @@ export default function CreateEventPage() {
 					End Date:
 					<input
 						type="datetime-local"
-						value={event.endDate}
+						value={formatDateForInput(event.endDate)}
 						onChange={(e) =>
-							handleChange({ endDate: e.target.value })
+							handleChange({ endDate: new Date(e.target.value) })
 						}
 					/>
 				</label>

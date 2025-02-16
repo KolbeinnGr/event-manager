@@ -24,3 +24,16 @@ export function verifyDates(fromDate: Date, toDate: Date): boolean {
 	}
 	return fromDate.getTime() < toDate.getTime();
 }
+
+export function getDurationInHrsMins(
+	fromDate: Date,
+	toDate: Date
+): { hours: number; minutes: number } | null {
+	if (!verifyDates(fromDate, toDate)) return null;
+
+	const msDiff = toDate.getTime() - fromDate.getTime();
+	const hours = Math.floor(msDiff / (1000 * 60 * 60));
+	const minutes = Math.floor((msDiff % (1000 * 60 * 60)) / (1000 * 60));
+
+	return { hours, minutes };
+}

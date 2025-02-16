@@ -1,4 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
+import { EventManager } from "@/app/server/logic/eventLogic";
+import { DatabaseService } from "@/app/server/database/databaseService";
+import { EventType } from "@/types/events";
 
 export async function POST(request: NextRequest) {
 	// Get session from the custom header
@@ -21,16 +24,20 @@ export async function POST(request: NextRequest) {
 			{ status: 400 }
 		);
 	}
+	const dbService: DatabaseService = new DatabaseService();
+	const eventManager: EventManager = new EventManager(dbService);
 
-	const newEvent = {
+	const ev = await eventManager.getEvent(2);
+	console.log(ev);
+
+	const newEvent: EventType = {
 		...body,
-		id: crypto.randomUUID(),
+		owner: { name: session.name, email: session.email },
 		createdBy: session.email, // Use the authenticated user's email
-		createdAt: new Date().toISOString(),
-		updatedAt: new Date().toISOString(),
 	};
-	console.log("Returning event: ", newEvent);
-	return NextResponse.json(newEvent, { status: 201 });
+	const created_event = await eventManager.createEvent(newEvent);
+	console.log("Created event: ", created_event);
+	return NextResponse.json(created_event, { status: 201 });
 }
 
 export async function GET(request: NextRequest) {

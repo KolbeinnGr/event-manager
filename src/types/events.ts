@@ -1,6 +1,6 @@
-export interface Event {
-	id: number; // Autoincremented primary key from the DB
-	uuid: string; // External identifier (remains the same across versions)
+export interface EventType {
+	id?: number; // Autoincremented primary key from the DB
+	uuid?: string; // External identifier (remains the same across versions)
 	title: string;
 	image: string;
 	shortDescription: string;
@@ -30,14 +30,10 @@ export interface Event {
 
 	owner: User;
 	editors?: User[];
-
-	createdAt: Date;
-	updatedAt: Date;
-	changeHistory?: ChangeHistory[];
 }
 
 export interface User {
-	id: number;
+	id?: number;
 	name: string;
 	email: string;
 }

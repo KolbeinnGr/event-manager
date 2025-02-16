@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
-import { Event } from "@/types/events";
+import { EventType } from "@/types/events";
+import { colorPrint } from "../helpers/utils";
 
 export class DatabaseService {
 	db = new PrismaClient();
@@ -50,11 +51,22 @@ export class DatabaseService {
 		return events;
 	}
 
-	async createEvent(event: Event) {
-		let new_event = event;
-		new_event.uuid = crypto.randomUUID();
+	async createEvent(event: EventType) {
+		// Make sure that the user exists in our system
+		let owner = await this.getUser(event.owner.email);
+		colorPrint(owner);
+		console.log(owner);
+		if (!owner) {
+			// Create the user if they don't already exist.
+			owner = await this.createUser(event.owner.name, event.owner.email);
+		}
 
-		return await this.db.event.create({
+		// Ensure owner has an id
+		if (!owner?.id) {
+			throw new Error("Owner ID is required to create an event.");
+		}
+
+		const created_event = await this.db.event.create({
 			data: {
 				uuid: crypto.randomUUID(),
 				title: event.title,
@@ -64,9 +76,7 @@ export class DatabaseService {
 				startDate: event.startDate,
 				endDate: event.endDate,
 				location: event.location,
-
 				recurring: event.recurring,
-
 				recurringDetails: event.recurringDetails
 					? {
 							create: {
@@ -84,34 +94,27 @@ export class DatabaseService {
 							},
 					  }
 					: undefined,
-
 				owner: {
-					connect: { id: event.owner.id },
+					connect: { id: owner.id },
 				},
-
-				// Editors (optional, connecting to existing users)
 				editors: event.editors
 					? {
 							connect: event.editors.map((u) => ({ id: u.id })),
 					  }
 					: undefined,
-
-				// Attendees come from a join table; you could connect them similarly if needed:
-				// attendees: { connect: event.attendees.map(u => ({ id: u.id })) },
-
 				notifyAttendees: event.notifyAttendees,
-
-				// JSON fields can be provided as objects
 				signupOptions: event.signupOptions,
 				theme: event.theme,
-
-				status: event.status, // draft, published, cancelled
-				visibility: event.visibility, // Public, Private,
+				status: event.status,
+				visibility: event.visibility,
 			},
 		});
+
+		console.log("Created event: ", created_event);
+		return created_event;
 	}
 
-	async createAttendee(name: string, email: string) {
+	async createUser(name: string, email: string) {
 		if (!name || !email) throw new Error("Invalid parameters.");
 
 		const emailRegex = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
@@ -131,6 +134,14 @@ export class DatabaseService {
 				name,
 				email,
 			},
+		});
+
+		return user;
+	}
+
+	async getUser(email: string) {
+		const user = await this.db.user.findUnique({
+			where: { email },
 		});
 
 		return user;
