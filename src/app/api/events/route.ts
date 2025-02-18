@@ -1,7 +1,8 @@
 import { NextResponse, NextRequest } from "next/server";
-import { EventManager } from "@/app/server/logic/eventLogic";
-import { DatabaseService } from "@/app/server/database/databaseService";
+import { EventManager } from "@/app/server/logic/eventManager";
+import { DatabaseManager } from "@/app/server/database/databaseManager";
 import { EventType } from "@/types/events";
+import { colorPrint } from "@/app/server/helpers/utils";
 
 export async function POST(request: NextRequest) {
 	// Get session from the custom header
@@ -24,7 +25,7 @@ export async function POST(request: NextRequest) {
 			{ status: 400 }
 		);
 	}
-	const dbService: DatabaseService = new DatabaseService();
+	const dbService: DatabaseManager = new DatabaseManager();
 	const eventManager: EventManager = new EventManager(dbService);
 
 	const ev = await eventManager.getEvent(2);
@@ -50,5 +51,9 @@ export async function GET(request: NextRequest) {
 	}
 
 	// Fetch events that the user can access
-	return NextResponse.json({ events: [] });
+	const db = new DatabaseManager();
+	const logicManager = new EventManager(db);
+	const events = await logicManager.getEvents(session.id); // this currently returns events that the session user is the owner of.
+
+	return NextResponse.json({ events });
 }

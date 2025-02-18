@@ -1,11 +1,11 @@
 // src/app/api/test/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { EventManager } from "@/app/server/logic/eventLogic";
-import { DatabaseService } from "@/app/server/database/databaseService";
+import { EventManager } from "@/app/server/logic/eventManager";
+import { DatabaseManager } from "@/app/server/database/databaseManager";
 
 export async function GET(request: NextRequest) {
 	try {
-		const dbService = new DatabaseService();
+		const dbService = new DatabaseManager();
 		const eventManager = new EventManager(dbService);
 
 		const result = await eventManager.testFunction(
@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
 	try {
 		const body = await request.json();
 
-		const dbService = new DatabaseService();
+		const dbService = new DatabaseManager();
 		const eventManager = new EventManager(dbService);
 
 		const result = await eventManager.createEvent(body);

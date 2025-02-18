@@ -1,11 +1,11 @@
-import { verifyDates } from "../helpers/dateHelper";
-import { DatabaseService } from "../database/databaseService";
+// import { verifyDates } from "../helpers/dateHelper";
+import { DatabaseManager } from "../database/databaseManager";
 import { EventType } from "@/types/events";
 
 export class EventManager {
-	private db: DatabaseService;
+	private db: DatabaseManager;
 
-	constructor(db: DatabaseService) {
+	constructor(db: DatabaseManager) {
 		this.db = db;
 	}
 
@@ -41,5 +41,9 @@ export class EventManager {
 		console.log("Getting event with id: ", id);
 
 		return await this.db.getEventByUuid(id);
+	}
+
+	async getEvents(userId: number) {
+		return await this.db.getEventsByOwnerId(userId);
 	}
 }

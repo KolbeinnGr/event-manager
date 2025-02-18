@@ -2,7 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import { EventType } from "@/types/events";
 import { colorPrint } from "../helpers/utils";
 
-export class DatabaseService {
+export class DatabaseManager {
 	db = new PrismaClient();
 
 	async getEventById(id: number) {
@@ -53,7 +53,7 @@ export class DatabaseService {
 
 	async createEvent(event: EventType) {
 		// Make sure that the user exists in our system
-		let owner = await this.getUser(event.owner.email);
+		let owner = await this.getUserByEmail(event.owner.email);
 		colorPrint(owner);
 		console.log(owner);
 		if (!owner) {
@@ -139,11 +139,10 @@ export class DatabaseService {
 		return user;
 	}
 
-	async getUser(email: string) {
+	async getUserByEmail(email: string) {
 		const user = await this.db.user.findUnique({
 			where: { email },
 		});
-
 		return user;
 	}
 }

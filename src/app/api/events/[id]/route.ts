@@ -9,7 +9,9 @@ export async function GET(request: NextRequest) {
 	if (!session) {
 		return {
 			status: 401,
-			body: { error: "Unauthorized: You must be signed in to access this API." },
+			body: {
+				error: "Unauthorized: You must be signed in to access this API.",
+			},
 		};
 	}
 
