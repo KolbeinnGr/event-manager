@@ -29,7 +29,6 @@ export async function POST(request: NextRequest) {
 	const eventManager: EventManager = new EventManager(dbService);
 
 	const ev = await eventManager.getEvent(2);
-	console.log(ev);
 
 	const newEvent: EventType = {
 		...body,

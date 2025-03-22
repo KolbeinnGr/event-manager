@@ -27,5 +27,5 @@ export const useEventStore = create<EventState>((set, get) => ({
 		set((state) => ({
 			events: state.events.filter((event) => event.id !== id),
 		})),
-	getEventById: (id: number) => get().events.find((event) => event.id === id),
+	getEventById: (id: number) => get().events.find((event) => event.id == id),
 }));

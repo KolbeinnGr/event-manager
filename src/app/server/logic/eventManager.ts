@@ -38,8 +38,6 @@ export class EventManager {
 	}
 
 	async testFunction(id: string) {
-		console.log("Getting event with id: ", id);
-
 		return await this.db.getEventByUuid(id);
 	}
 

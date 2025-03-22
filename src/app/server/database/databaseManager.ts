@@ -6,7 +6,6 @@ export class DatabaseManager {
 	db = new PrismaClient();
 
 	async getEventById(id: number) {
-		console.log(id);
 		const event = await this.db.event.findUnique({
 			where: { id },
 		});
@@ -27,7 +26,6 @@ export class DatabaseManager {
 		if (!event) {
 			throw new Error("Event was not found!");
 		}
-		console.log("Event found: ", event);
 		return event;
 	}
 
@@ -38,14 +36,20 @@ export class DatabaseManager {
 		const events = await this.db.event.findMany({
 			where: {
 				ownerId,
-				startDate: {
-					gte: today,
+			},
+			include: {
+				owner: true,
+				editors: true,
+				attendees: {
+					include: {
+						user: true,
+					},
 				},
 			},
 		});
 
 		if (events.length === 0) {
-			throw new Error("No events found");
+			return [];
 		}
 
 		return events;
@@ -54,8 +58,6 @@ export class DatabaseManager {
 	async createEvent(event: EventType) {
 		// Make sure that the user exists in our system
 		let owner = await this.getUserByEmail(event.owner.email);
-		colorPrint(owner);
-		console.log(owner);
 		if (!owner) {
 			// Create the user if they don't already exist.
 			owner = await this.createUser(event.owner.name, event.owner.email);
@@ -110,7 +112,6 @@ export class DatabaseManager {
 			},
 		});
 
-		console.log("Created event: ", created_event);
 		return created_event;
 	}
 
