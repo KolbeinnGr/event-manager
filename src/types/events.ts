@@ -32,6 +32,16 @@ export interface EventType {
 	editors?: User[];
 }
 
+// Form-specific interface that extends EventType
+export interface EventFormData
+	extends Omit<EventType, "startDate" | "endDate"> {
+	startDate: Date;
+	endDate?: Date;
+	startTime: Date;
+	endTime: Date;
+	isAllDay: boolean;
+}
+
 export interface User {
 	id?: number;
 	name: string;

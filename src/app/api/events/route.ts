@@ -11,6 +11,7 @@ export async function POST(request: NextRequest) {
 
 	// Failsafe check for session. This should not happen due to the middleware handling this
 	if (!session) {
+		console.log("User is not authenticated");
 		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 	}
 
@@ -18,6 +19,9 @@ export async function POST(request: NextRequest) {
 	const { title, description, location, startDate, endDate } = body;
 
 	if (!title || !description || !location || !startDate) {
+		console.log(
+			"Missing required fields: title, description, location, startDate"
+		);
 		return NextResponse.json(
 			{
 				error: "Missing required fields: title, description, location, startDate",
@@ -27,8 +31,6 @@ export async function POST(request: NextRequest) {
 	}
 	const dbService: DatabaseManager = new DatabaseManager();
 	const eventManager: EventManager = new EventManager(dbService);
-
-	const ev = await eventManager.getEvent(2);
 
 	const newEvent: EventType = {
 		...body,
