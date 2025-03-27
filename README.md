@@ -1,5 +1,5 @@
 # Event Manager
-
+WIP
 A modern, full-featured event management application built with Next.js and TypeScript. This application allows users to create, manage, and track events with a beautiful and intuitive interface.
 
 ## Features
@@ -17,10 +17,10 @@ A modern, full-featured event management application built with Next.js and Type
 
 ## Tech Stack
 
--   **Framework**: Next.js 15.1.6
+-   **Framework**: Next.js 15.2.3
 -   **Language**: TypeScript
 -   **Styling**: Tailwind CSS
--   **Database**: Prisma ORM
+-   **Database**: Prisma ORM - postgresql Database hosted on Supabase
 -   **Authentication**: NextAuth.js
 -   **State Management**: Zustand
 -   **Calendar**: FullCalendar
